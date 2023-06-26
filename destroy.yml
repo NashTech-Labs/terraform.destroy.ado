@@ -1,0 +1,50 @@
+parameters:
+- name: 'workingDirectory'
+  type: string
+  default: ''
+
+- name: workspace
+  type: string
+  default: ''
+
+- name: 'initbackend'
+  type: string
+  default: ''
+
+- name: ProjectName
+  type: string
+  default: "Testing"
+  
+- name: 'provider'
+  type: string
+  default: 'azurerm'
+
+- name: 'destroycommandOptions'
+  type: string
+  default: ''
+
+- name: 'ServiceConnectionNameAzureRM'
+  type: string
+  default: ''
+
+steps:
+
+- script: |
+    terraform destroy ${{ parameters.destroycommandOptions }}
+  workingDirectory: '${{ parameters.workingDirectory}}'
+  displayName: "Terraform Destroy Using TF Workspace for ${{ parameters.ProjectName }}"
+  name: "TerraformDestroyTFworkspace"
+  condition: eq( ${{ parameters.initbackend }}, 'tfworkspace')
+  env:
+    TF_WORKSPACE: "${{ parameters.workspace}}"
+
+- task: TerraformTaskV4@4
+  name: "TerraformDestroyAzure"
+  displayName: " Terraform Destroy Resources Using Azure Backend for ${{ parameters.ProjectName }}"
+  condition: eq( ${{ parameters.initbackend }}, 'azure')
+  inputs:
+    provider: ${{ parameters.provider }}
+    command: 'destroy'
+    commandOptions: ${{ parameters.destroycommandOptions }}
+    environmentServiceNameAzureRM: ${{ parameters.ServiceConnectionNameAzureRM }}
+    workingDirectory: '${{ parameters.workingDirectory}}'
